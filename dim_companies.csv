@@ -1,0 +1,13 @@
+ticker,company_name,sector,industry
+HDFCBANK.NS,HDFC Bank Ltd,Banking & Financials,Private Bank
+ICICIBANK.NS,ICICI Bank Ltd,Banking & Financials,Private Bank
+SBIN.NS,State Bank of India,Banking & Financials,Public Bank
+TCS.NS,Tata Consultancy Services Ltd,Information Technology,IT Services
+INFY.NS,Infosys Ltd,Information Technology,IT Services
+WIPRO.NS,Wipro Ltd,Information Technology,IT Services
+RELIANCE.NS,Reliance Industries Ltd,Energy & Industrials,Conglomerate
+LT.NS,Larsen & Toubro Ltd,Energy & Industrials,Engineering
+NTPC.NS,NTPC Ltd,Energy & Industrials,Power Generation
+HINDUNILVR.NS,Hindustan Unilever Ltd,FMCG & Consumer,Consumer Goods
+ITC.NS,ITC Ltd,FMCG & Consumer,Consumer Goods
+TITAN.NS,Titan Company Ltd,FMCG & Consumer,Consumer Durables
