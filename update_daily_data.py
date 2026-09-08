@@ -2,20 +2,26 @@ import os
 from datetime import datetime, timedelta
 import pandas as pd
 from sqlalchemy import create_engine, text
-import yfinance as yf
+from sqlalchemy.engine import make_url
 
-# 1. Fetch and validate DATABASE_URL
-DATABASE_URL = os.getenv("DATABASE_URL")
-if not DATABASE_URL:
+# 1. Retrieve and sanitize DATABASE_URL
+raw_url = os.getenv("DATABASE_URL", "").strip().strip("'\"")
+
+if not raw_url:
     raise ValueError(
-        "CRITICAL ERROR: 'DATABASE_URL' secret is missing or not set in GitHub repository settings."
+        "CRITICAL ERROR: 'DATABASE_URL' secret is missing or empty in GitHub Secrets."
     )
 
-# Standardize postgresql protocol prefix if needed
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+if raw_url.startswith("postgres://"):
+    raw_url = raw_url.replace("postgres://", "postgresql://", 1)
 
-engine = create_engine(DATABASE_URL)
+# Safely parse URL to handle special characters and formatting
+try:
+    parsed_url = make_url(raw_url)
+    engine = create_engine(parsed_url)
+except Exception as e:
+    print(f"URL Parsing Error: Check your DATABASE_URL formatting in GitHub Secrets. Raw input received: {raw_url[:15]}...")
+    raise e
 
 
 def get_latest_date(table_name):
@@ -49,7 +55,7 @@ try:
         print("Database is already up to date. Exiting sync.")
         exit(0)
 
-    # 2. Fetch company tickers using an active connection
+    # 2. Fetch company tickers using active connection
     with engine.connect() as conn:
         dim_companies = pd.read_sql("SELECT ticker FROM dim_companies;", con=conn)
     tickers = dim_companies["ticker"].tolist()
