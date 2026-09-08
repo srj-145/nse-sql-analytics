@@ -3,9 +3,10 @@ from datetime import datetime, timedelta
 import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
+import yfinance as yf
 
 # 1. Retrieve and sanitize DATABASE_URL
-raw_url = os.getenv("DATABASE_URL", "").strip().strip("'\"")
+raw_url = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_JZoATD5kBaW1@ep-dawn-night-aeu5xvlv-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require").strip().strip("'\"")
 
 if not raw_url:
     raise ValueError(
@@ -15,12 +16,11 @@ if not raw_url:
 if raw_url.startswith("postgres://"):
     raw_url = raw_url.replace("postgres://", "postgresql://", 1)
 
-# Safely parse URL to handle special characters and formatting
 try:
     parsed_url = make_url(raw_url)
     engine = create_engine(parsed_url)
 except Exception as e:
-    print(f"URL Parsing Error: Check your DATABASE_URL formatting in GitHub Secrets. Raw input received: {raw_url[:15]}...")
+    print("URL Parsing Error: Check your DATABASE_URL formatting in GitHub Secrets.")
     raise e
 
 
