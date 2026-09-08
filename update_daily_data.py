@@ -15,7 +15,7 @@ session.headers.update(
 )
 
 # 1. Retrieve and sanitize DATABASE_URL
-raw_url = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_JZoATD5kBaW1@ep-dawn-night-aeu5xvlv-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require").strip().strip("'\"")
+raw_url = os.getenv("DATABASE_URL", "").strip().strip("'\"")
 
 if not raw_url:
     raise ValueError(
