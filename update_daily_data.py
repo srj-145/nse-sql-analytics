@@ -1,9 +1,18 @@
 import os
 from datetime import datetime, timedelta
 import pandas as pd
+import requests
 from sqlalchemy import create_engine, text
 from sqlalchemy.engine import make_url
 import yfinance as yf
+
+# Create a custom requests session with standard browser headers
+session = requests.Session()
+session.headers.update(
+    {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
+    }
+)
 
 # 1. Retrieve and sanitize DATABASE_URL
 raw_url = os.getenv("DATABASE_URL", "postgresql://neondb_owner:npg_JZoATD5kBaW1@ep-dawn-night-aeu5xvlv-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require").strip().strip("'\"")
@@ -64,12 +73,13 @@ try:
     parsed_stocks = []
     for ticker in tickers:
         df = yf.download(
-            ticker,
-            start=start_date.strftime("%Y-%m-%d"),
-            end=(today + timedelta(days=1)).strftime("%Y-%m-%d"),
-            progress=False,
-            auto_adjust=False,
-        )
+    ticker,
+    start=start_date.strftime("%Y-%m-%d"),
+    end=(today + timedelta(days=1)).strftime("%Y-%m-%d"),
+    progress=False,
+    auto_adjust=False,
+    session=session,
+)
         if not df.empty:
             if isinstance(df.columns, pd.MultiIndex):
                 df.columns = df.columns.get_level_values(0)
