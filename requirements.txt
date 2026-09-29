@@ -1,7 +1,8 @@
-pandas>=2.0.0
-yfinance>=0.2.30
-sqlalchemy>=2.0.0
-psycopg2-binary>=2.9.0
-requests>=2.31.0
-streamlit>=1.30.0
-plotly>=5.18.0
+pandas
+yfinance
+sqlalchemy
+psycopg2-binary
+psycopg
+requests
+streamlit
+plotly
