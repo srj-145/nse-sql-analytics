@@ -2,7 +2,6 @@ name: Keep Streamlit Dashboard Awake
 
 on:
   schedule:
-    # Runs every 12 hours
     - cron: '0 */12 * * *'
   workflow_dispatch:
 
@@ -12,4 +11,4 @@ jobs:
     steps:
       - name: Ping Streamlit Dashboard
         run: |
-          curl -sL "https://nse-sql-analytics-140423102005.streamlit.app/" > /dev/null
+          curl -sL -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64)" "https://nse-sql-analytics-140423102005.streamlit.app/" -o /dev/null || true
