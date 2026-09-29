@@ -2,7 +2,7 @@ pandas
 yfinance
 sqlalchemy
 psycopg2-binary
-psycopg
+psycopg[binary]
 requests
 streamlit
 plotly

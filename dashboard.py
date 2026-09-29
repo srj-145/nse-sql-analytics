@@ -39,8 +39,13 @@ def init_connection():
         else os.getenv("DATABASE_URL", "")
     )
     raw_url = raw_url.strip().strip("'\"")
+
+    # Explicitly force psycopg2 driver prefix for SQLAlchemy compatibility
     if raw_url.startswith("postgres://"):
-        raw_url = raw_url.replace("postgres://", "postgresql://", 1)
+        raw_url = raw_url.replace("postgres://", "postgresql+psycopg2://", 1)
+    elif raw_url.startswith("postgresql://") and not raw_url.startswith("postgresql+"):
+        raw_url = raw_url.replace("postgresql://", "postgresql+psycopg2://", 1)
+
     return create_engine(raw_url)
 
 
