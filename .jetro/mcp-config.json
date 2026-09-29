@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "jetro": {
+      "command": "/Users/charlie/.jetro/runtime/node-darwin-arm64",
+      "args": [
+        "/Users/charlie/.jetro/mcp-server/index.js"
+      ],
+      "env": {
+        "JET_WORKSPACE": "/Users/charlie/Documents/Documents - Suriti’s MacBook Air - 1/Projects/nse_sql_project",
+        "JET_API_URL": "https://api.jetro.ai",
+        "PATH": "/Users/charlie/.jetro/runtime:/Users/charlie/.antigravity-ide/antigravity-ide/bin:/Users/charlie/.antigravity-ide/antigravity-ide/bin:/Users/charlie/.antigravity-ide/antigravity-ide/bin:/Users/charlie/.nvm/versions/node/v24.15.0/bin:/Users/charlie/.console-ninja/.bin:/Users/charlie/Desktop/Proggraming/anaconda3/bin:/Library/Frameworks/Python.framework/Versions/3.12/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/Library/Frameworks/Python.framework/Versions/3.11/bin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Users/charlie/Library/Application Support/JetBrains/Toolbox/scripts:/usr/local/mysql-9.1.0-macos14-arm64/bin:/Users/charlie/mongodb-macos-aarch64-8.0.4/bin"
+      }
+    }
+  }
+}

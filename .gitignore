@@ -1,0 +1,22 @@
+# Python virtual environments & bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+.env
+
+# Streamlit secrets & local config
+.streamlit/secrets.toml
+
+# Local Data / Database files
+*.csv
+*.sqlite
+*.db
+
+# IDE & OS files
+.vscode/
+.idea/
+.DS_Store
+*.log
