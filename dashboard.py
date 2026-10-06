@@ -23,7 +23,8 @@ engine = get_db_engine()
 
 @st.cache_data(ttl=3600)
 def load_companies():
-    query = "SELECT ticker, company_name, sector FROM dim_companies ORDER BY company_name;"
+    # Fetch top 25 companies sorted by company name
+    query = "SELECT ticker, company_name, sector FROM dim_companies ORDER BY company_name LIMIT 25;"
     return pd.read_sql(query, engine)
 
 # Low cache TTL ensures fresh database bounds are fetched promptly
@@ -72,7 +73,7 @@ today_date = datetime.date.today()
 st.sidebar.header("Controls & Filters")
 
 selected_ticker = st.sidebar.selectbox(
-    "Select Stock Ticker:",
+    "Select Stock Ticker (Top 25):",
     options=companies_df['ticker'].tolist()
 )
 
