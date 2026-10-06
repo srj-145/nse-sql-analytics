@@ -18,31 +18,31 @@ elif DATABASE_URL.startswith("postgresql://"):
 engine = create_engine(DATABASE_URL)
 
 TOP_25_COMPANIES = [
-    {"ticker": "ADANIENT.NS", "company_name": "Adani Enterprises Ltd", "sector": "Metals & Mining"},
-    {"ticker": "AXISBANK.NS", "company_name": "Axis Bank Ltd", "sector": "Financial Services"},
-    {"ticker": "BAJFINANCE.NS", "company_name": "Bajaj Finance Ltd", "sector": "Financial Services"},
-    {"ticker": "BHARTIARTL.NS", "company_name": "Bharti Airtel Ltd", "sector": "Telecommunication"},
-    {"ticker": "HDFCBANK.NS", "company_name": "HDFC Bank Ltd", "sector": "Financial Services"},
-    {"ticker": "HINDUNILVR.NS", "company_name": "Hindustan Unilever Ltd", "sector": "Consumer Goods"},
-    {"ticker": "ICICIBANK.NS", "company_name": "ICICI Bank Ltd", "sector": "Financial Services"},
-    {"ticker": "INFY.NS", "company_name": "Infosys Ltd", "sector": "Information Technology"},
-    {"ticker": "ITC.NS", "company_name": "ITC Ltd", "sector": "Consumer Goods"},
-    {"ticker": "KOTAKBANK.NS", "company_name": "Kotak Mahindra Bank Ltd", "sector": "Financial Services"},
-    {"ticker": "LT.NS", "company_name": "Larsen & Toubro Ltd", "sector": "Construction & Engineering"},
-    {"ticker": "LTIM.NS", "company_name": "LTIMindtree Ltd", "sector": "Information Technology"},
-    {"ticker": "M&M.NS", "company_name": "Mahindra & Mahindra Ltd", "sector": "Automobile"},
-    {"ticker": "MARUTI.NS", "company_name": "Maruti Suzuki India Ltd", "sector": "Automobile"},
-    {"ticker": "NTPC.NS", "company_name": "NTPC Ltd", "sector": "Power & Energy"},
-    {"ticker": "ONGC.NS", "company_name": "Oil & Natural Gas Corporation Ltd", "sector": "Energy"},
-    {"ticker": "POWERGRID.NS", "company_name": "Power Grid Corporation of India Ltd", "sector": "Power & Energy"},
-    {"ticker": "RELIANCE.NS", "company_name": "Reliance Industries Ltd", "sector": "Energy & Industrials"},
-    {"ticker": "SBIN.NS", "company_name": "State Bank of India", "sector": "Financial Services"},
-    {"ticker": "SUNPHARMA.NS", "company_name": "Sun Pharmaceutical Industries Ltd", "sector": "Healthcare & Pharma"},
-    {"ticker": "TATAMOTORS.NS", "company_name": "Tata Motors Ltd", "sector": "Automobile"},
-    {"ticker": "TCS.NS", "company_name": "Tata Consultancy Services Ltd", "sector": "Information Technology"},
-    {"ticker": "TITAN.NS", "company_name": "Titan Company Ltd", "sector": "Consumer Goods"},
-    {"ticker": "ULTRACEMCO.NS", "company_name": "UltraTech Cement Ltd", "sector": "Construction Materials"},
-    {"ticker": "WIPRO.NS", "company_name": "Wipro Ltd", "sector": "Information Technology"}
+    {"ticker": "ADANIENT.NS", "company_name": "Adani Enterprises Ltd", "sector": "Metals & Mining", "industry": "Diversified Metals"},
+    {"ticker": "AXISBANK.NS", "company_name": "Axis Bank Ltd", "sector": "Financial Services", "industry": "Private Bank"},
+    {"ticker": "BAJFINANCE.NS", "company_name": "Bajaj Finance Ltd", "sector": "Financial Services", "industry": "NBFC"},
+    {"ticker": "BHARTIARTL.NS", "company_name": "Bharti Airtel Ltd", "sector": "Telecommunication", "industry": "Telecom Services"},
+    {"ticker": "HDFCBANK.NS", "company_name": "HDFC Bank Ltd", "sector": "Financial Services", "industry": "Private Bank"},
+    {"ticker": "HINDUNILVR.NS", "company_name": "Hindustan Unilever Ltd", "sector": "Consumer Goods", "industry": "FMCG"},
+    {"ticker": "ICICIBANK.NS", "company_name": "ICICI Bank Ltd", "sector": "Financial Services", "industry": "Private Bank"},
+    {"ticker": "INFY.NS", "company_name": "Infosys Ltd", "sector": "Information Technology", "industry": "IT Services"},
+    {"ticker": "ITC.NS", "company_name": "ITC Ltd", "sector": "Consumer Goods", "industry": "FMCG"},
+    {"ticker": "KOTAKBANK.NS", "company_name": "Kotak Mahindra Bank Ltd", "sector": "Financial Services", "industry": "Private Bank"},
+    {"ticker": "LT.NS", "company_name": "Larsen & Toubro Ltd", "sector": "Construction & Engineering", "industry": "Engineering & Construction"},
+    {"ticker": "LTIM.NS", "company_name": "LTIMindtree Ltd", "sector": "Information Technology", "industry": "IT Services"},
+    {"ticker": "M&M.NS", "company_name": "Mahindra & Mahindra Ltd", "sector": "Automobile", "industry": "Auto Manufacturers"},
+    {"ticker": "MARUTI.NS", "company_name": "Maruti Suzuki India Ltd", "sector": "Automobile", "industry": "Auto Manufacturers"},
+    {"ticker": "NTPC.NS", "company_name": "NTPC Ltd", "sector": "Power & Energy", "industry": "Power Generation"},
+    {"ticker": "ONGC.NS", "company_name": "Oil & Natural Gas Corporation Ltd", "sector": "Energy", "industry": "Oil & Gas Exploration"},
+    {"ticker": "POWERGRID.NS", "company_name": "Power Grid Corporation of India Ltd", "sector": "Power & Energy", "industry": "Power Transmission"},
+    {"ticker": "RELIANCE.NS", "company_name": "Reliance Industries Ltd", "sector": "Energy & Industrials", "industry": "Oil & Gas / Conglomerate"},
+    {"ticker": "SBIN.NS", "company_name": "State Bank of India", "sector": "Financial Services", "industry": "Public Bank"},
+    {"ticker": "SUNPHARMA.NS", "company_name": "Sun Pharmaceutical Industries Ltd", "sector": "Healthcare & Pharma", "industry": "Pharmaceuticals"},
+    {"ticker": "TATAMOTORS.NS", "company_name": "Tata Motors Ltd", "sector": "Automobile", "industry": "Auto Manufacturers"},
+    {"ticker": "TCS.NS", "company_name": "Tata Consultancy Services Ltd", "sector": "Information Technology", "industry": "IT Services"},
+    {"ticker": "TITAN.NS", "company_name": "Titan Company Ltd", "sector": "Consumer Goods", "industry": "Consumer Durables"},
+    {"ticker": "ULTRACEMCO.NS", "company_name": "UltraTech Cement Ltd", "sector": "Construction Materials", "industry": "Cement"},
+    {"ticker": "WIPRO.NS", "company_name": "Wipro Ltd", "sector": "Information Technology", "industry": "IT Services"}
 ]
 
 def clean_val(val, val_type=float):
@@ -57,15 +57,15 @@ def clean_val(val, val_type=float):
 
 def seed_companies():
     seed_sql = text("""
-        INSERT INTO dim_companies (ticker, company_name, sector)
-        SELECT :ticker, :company_name, :sector
+        INSERT INTO dim_companies (ticker, company_name, sector, industry)
+        SELECT :ticker, :company_name, :sector, :industry
         WHERE NOT EXISTS (
             SELECT 1 FROM dim_companies WHERE ticker = :ticker
         );
     """)
     update_sql = text("""
         UPDATE dim_companies
-        SET company_name = :company_name, sector = :sector
+        SET company_name = :company_name, sector = :sector, industry = :industry
         WHERE ticker = :ticker;
     """)
     try:
