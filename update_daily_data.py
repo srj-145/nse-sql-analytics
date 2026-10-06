@@ -9,6 +9,12 @@ if not DATABASE_URL:
     print("DATABASE_URL environment variable is not set.")
     exit(0)
 
+# Enforce psycopg2 dialect for SQLAlchemy
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql+psycopg2://", 1)
+elif DATABASE_URL.startswith("postgresql://"):
+    DATABASE_URL = DATABASE_URL.replace("postgresql://", "postgresql+psycopg2://", 1)
+
 engine = create_engine(DATABASE_URL)
 
 def clean_val(val, val_type=float):
