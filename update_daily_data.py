@@ -56,16 +56,24 @@ def clean_val(val, val_type=float):
         return None
 
 def seed_companies():
-    upsert_sql = text("""
+    seed_sql = text("""
         INSERT INTO dim_companies (ticker, company_name, sector)
-        VALUES (:ticker, :company_name, :sector)
-        ON CONFLICT (ticker) DO UPDATE 
-        SET company_name = EXCLUDED.company_name, sector = EXCLUDED.sector;
+        SELECT :ticker, :company_name, :sector
+        WHERE NOT EXISTS (
+            SELECT 1 FROM dim_companies WHERE ticker = :ticker
+        );
+    """)
+    update_sql = text("""
+        UPDATE dim_companies
+        SET company_name = :company_name, sector = :sector
+        WHERE ticker = :ticker;
     """)
     try:
         with engine.begin() as conn:
             for company in TOP_25_COMPANIES:
-                conn.execute(upsert_sql, company)
+                res = conn.execute(seed_sql, company)
+                if res.rowcount == 0:
+                    conn.execute(update_sql, company)
         print("Successfully verified/seeded top 25 companies into dim_companies table.")
     except Exception as e:
         print(f"Error seeding companies: {e}")
@@ -79,7 +87,6 @@ def get_latest_date():
         return None
 
 def update_data():
-    # Ensure all 25 companies are present in dim_companies
     seed_companies()
 
     latest_date = get_latest_date()
@@ -89,16 +96,11 @@ def update_data():
         start_date = datetime.date(2024, 1, 1)
     else:
         start_date = latest_date + datetime.timedelta(days=1)
-        
-    if start_date >= today:
-        print("Data is already up to date!")
-        return
-
-    print(f"Fetching missing data from {start_date} to {today}...")
 
     try:
         tickers_df = pd.read_sql("SELECT ticker FROM dim_companies;", engine)
         tickers = tickers_df['ticker'].tolist()
+        print(f"Found {len(tickers)} tickers in dim_companies table.")
     except Exception as e:
         print(f"Error loading tickers: {e}")
         return
@@ -107,9 +109,11 @@ def update_data():
         print("No tickers found in dim_companies table.")
         return
 
-    # Fetch stock prices
+    fetch_start = start_date if start_date < today else datetime.date(2024, 1, 1)
+    print(f"Fetching market data from {fetch_start} to {today}...")
+
     try:
-        data = yf.download(tickers, start=start_date, end=today + datetime.timedelta(days=1), group_by='ticker', auto_adjust=False, progress=False)
+        data = yf.download(tickers, start=fetch_start, end=today + datetime.timedelta(days=1), group_by='ticker', auto_adjust=False, progress=False)
     except Exception as e:
         print(f"Error fetching yfinance data: {e}")
         return
@@ -158,13 +162,13 @@ def update_data():
         try:
             with engine.begin() as conn:
                 conn.execute(insert_sql, df_stock.to_dict(orient='records'))
-            print(f"Inserted {len(stock_records)} stock price records.")
+            print(f"Inserted/updated {len(stock_records)} stock price records.")
         except Exception as e:
             print(f"Error executing stock insert query: {e}")
 
     # Fetch NIFTY 50 Index data
     try:
-        index_data = yf.download("^NSEI", start=start_date, end=today + datetime.timedelta(days=1), auto_adjust=False, progress=False).reset_index()
+        index_data = yf.download("^NSEI", start=fetch_start, end=today + datetime.timedelta(days=1), auto_adjust=False, progress=False).reset_index()
         if isinstance(index_data.columns, pd.MultiIndex):
             index_data.columns = index_data.columns.get_level_values(0)
 
@@ -198,7 +202,7 @@ def update_data():
             """)
             with engine.begin() as conn:
                 conn.execute(insert_index_sql, df_index.to_dict(orient='records'))
-            print(f"Inserted {len(index_records)} index records.")
+            print(f"Inserted/updated {len(index_records)} index records.")
     except Exception as e:
         print(f"Error processing index data: {e}")
 
