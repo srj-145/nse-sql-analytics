@@ -21,13 +21,12 @@ def get_db_engine():
 
 engine = get_db_engine()
 
-@st.cache_data(ttl=3600)
+# TTL set to 60 seconds so company list updates promptly after database seed
+@st.cache_data(ttl=60)
 def load_companies():
-    # Fetch top 25 companies sorted by company name
     query = "SELECT ticker, company_name, sector FROM dim_companies ORDER BY company_name LIMIT 25;"
     return pd.read_sql(query, engine)
 
-# Low cache TTL ensures fresh database bounds are fetched promptly
 @st.cache_data(ttl=60)
 def get_date_bounds():
     with engine.connect() as conn:
@@ -81,7 +80,6 @@ company_info = companies_df[companies_df['ticker'] == selected_ticker].iloc[0]
 st.sidebar.write(f"**Company:** {company_info['company_name']}")
 st.sidebar.write(f"**Sector:** {company_info['sector']}")
 
-# Calendar UI allows selection up to current date
 date_range = st.sidebar.date_input(
     "Select Date Range:",
     value=(min_db_date, max_db_date),
@@ -100,13 +98,11 @@ index_df = load_index_data(start_date, end_date)
 if stock_df.empty:
     st.warning("No data available for the selected date range in the database.")
 else:
-    # Technical Indicators
     stock_df['SMA_20'] = stock_df['close_price'].rolling(window=20).mean()
     stock_df['SMA_50'] = stock_df['close_price'].rolling(window=50).mean()
 
     st.subheader(f"{company_info['company_name']} ({selected_ticker}) - Price Action")
 
-    # Metrics
     latest_close = stock_df['close_price'].iloc[-1]
     prev_close = stock_df['close_price'].iloc[-2] if len(stock_df) > 1 else latest_close
     chg = latest_close - prev_close
@@ -117,7 +113,6 @@ else:
     col2.metric("Period High", f"₹{stock_df['high_price'].max():,.2f}")
     col3.metric("Period Low", f"₹{stock_df['low_price'].min():,.2f}")
 
-    # Candlestick Chart
     fig = go.Figure()
     fig.add_trace(go.Candlestick(
         x=stock_df['trade_date'],
@@ -133,7 +128,6 @@ else:
     fig.update_layout(xaxis_rangeslider_visible=False, template="plotly_dark", height=500)
     st.plotly_chart(fig, use_container_width=True)
 
-    # Relative Performance Comparison
     st.subheader("Relative Performance vs NIFTY 50")
     if not index_df.empty:
         merged = pd.merge(stock_df, index_df, on="trade_date", suffixes=('_stock', '_index'))
