@@ -17,6 +17,34 @@ elif DATABASE_URL.startswith("postgresql://"):
 
 engine = create_engine(DATABASE_URL)
 
+TOP_25_COMPANIES = [
+    {"ticker": "RELIANCE.NS", "company_name": "Reliance Industries Ltd", "sector": "Energy & Industrials"},
+    {"ticker": "TCS.NS", "company_name": "Tata Consultancy Services Ltd", "sector": "Information Technology"},
+    {"ticker": "HDFCBANK.NS", "company_name": "HDFC Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "ICICIBANK.NS", "company_name": "ICICI Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "INFY.NS", "company_name": "Infosys Ltd", "sector": "Information Technology"},
+    {"ticker": "BHARTIARTL.NS", "company_name": "Bharti Airtel Ltd", "sector": "Telecommunication"},
+    {"ticker": "ITC.NS", "company_name": "ITC Ltd", "sector": "Consumer Goods"},
+    {"ticker": "SBIN.NS", "company_name": "State Bank of India", "sector": "Financial Services"},
+    {"ticker": "LTIM.NS", "company_name": "LTIMindtree Ltd", "sector": "Information Technology"},
+    {"ticker": "LT.NS", "company_name": "Larsen & Toubro Ltd", "sector": "Construction & Engineering"},
+    {"ticker": "HINDUNILVR.NS", "company_name": "Hindustan Unilever Ltd", "sector": "Consumer Goods"},
+    {"ticker": "AXISBANK.NS", "company_name": "Axis Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "KOTAKBANK.NS", "company_name": "Kotak Mahindra Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "M&M.NS", "company_name": "Mahindra & Mahindra Ltd", "sector": "Automobile"},
+    {"ticker": "MARUTI.NS", "company_name": "Maruti Suzuki India Ltd", "sector": "Automobile"},
+    {"ticker": "SUNPHARMA.NS", "company_name": "Sun Pharmaceutical Industries Ltd", "sector": "Healthcare & Pharma"},
+    {"ticker": "TATAMOTORS.NS", "company_name": "Tata Motors Ltd", "sector": "Automobile"},
+    {"ticker": "NTPC.NS", "company_name": "NTPC Ltd", "sector": "Power & Energy"},
+    {"ticker": "ONGC.NS", "company_name": "Oil & Natural Gas Corporation Ltd", "sector": "Energy"},
+    {"ticker": "POWERGRID.NS", "company_name": "Power Grid Corporation of India Ltd", "sector": "Power & Energy"},
+    {"ticker": "TITAN.NS", "company_name": "Titan Company Ltd", "sector": "Consumer Goods"},
+    {"ticker": "ULTRACEMCO.NS", "company_name": "UltraTech Cement Ltd", "sector": "Construction Materials"},
+    {"ticker": "BAJFINANCE.NS", "company_name": "Bajaj Finance Ltd", "sector": "Financial Services"},
+    {"ticker": "ADANIENT.NS", "company_name": "Adani Enterprises Ltd", "sector": "Metals & Mining"},
+    {"ticker": "WIPRO.NS", "company_name": "Wipro Ltd", "sector": "Information Technology"}
+]
+
 def clean_val(val, val_type=float):
     if pd.isna(val) or val is None:
         return None
@@ -27,6 +55,21 @@ def clean_val(val, val_type=float):
     except (ValueError, TypeError):
         return None
 
+def seed_companies():
+    upsert_sql = text("""
+        INSERT INTO dim_companies (ticker, company_name, sector)
+        VALUES (:ticker, :company_name, :sector)
+        ON CONFLICT (ticker) DO UPDATE 
+        SET company_name = EXCLUDED.company_name, sector = EXCLUDED.sector;
+    """)
+    try:
+        with engine.begin() as conn:
+            for company in TOP_25_COMPANIES:
+                conn.execute(upsert_sql, company)
+        print("Successfully verified/seeded top 25 companies into dim_companies table.")
+    except Exception as e:
+        print(f"Error seeding companies: {e}")
+
 def get_latest_date():
     try:
         with engine.connect() as conn:
@@ -36,6 +79,9 @@ def get_latest_date():
         return None
 
 def update_data():
+    # Ensure all 25 companies are present in dim_companies
+    seed_companies()
+
     latest_date = get_latest_date()
     today = datetime.date.today()
     
