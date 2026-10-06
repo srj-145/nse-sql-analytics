@@ -7,6 +7,34 @@ from sqlalchemy import create_engine, text
 
 st.set_page_config(page_title="NSE NIFTY 50 Analytics", layout="wide")
 
+TOP_25_COMPANIES = [
+    {"ticker": "ADANIENT.NS", "company_name": "Adani Enterprises Ltd", "sector": "Metals & Mining"},
+    {"ticker": "AXISBANK.NS", "company_name": "Axis Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "BAJFINANCE.NS", "company_name": "Bajaj Finance Ltd", "sector": "Financial Services"},
+    {"ticker": "BHARTIARTL.NS", "company_name": "Bharti Airtel Ltd", "sector": "Telecommunication"},
+    {"ticker": "HDFCBANK.NS", "company_name": "HDFC Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "HINDUNILVR.NS", "company_name": "Hindustan Unilever Ltd", "sector": "Consumer Goods"},
+    {"ticker": "ICICIBANK.NS", "company_name": "ICICI Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "INFY.NS", "company_name": "Infosys Ltd", "sector": "Information Technology"},
+    {"ticker": "ITC.NS", "company_name": "ITC Ltd", "sector": "Consumer Goods"},
+    {"ticker": "KOTAKBANK.NS", "company_name": "Kotak Mahindra Bank Ltd", "sector": "Financial Services"},
+    {"ticker": "LT.NS", "company_name": "Larsen & Toubro Ltd", "sector": "Construction & Engineering"},
+    {"ticker": "LTIM.NS", "company_name": "LTIMindtree Ltd", "sector": "Information Technology"},
+    {"ticker": "M&M.NS", "company_name": "Mahindra & Mahindra Ltd", "sector": "Automobile"},
+    {"ticker": "MARUTI.NS", "company_name": "Maruti Suzuki India Ltd", "sector": "Automobile"},
+    {"ticker": "NTPC.NS", "company_name": "NTPC Ltd", "sector": "Power & Energy"},
+    {"ticker": "ONGC.NS", "company_name": "Oil & Natural Gas Corporation Ltd", "sector": "Energy"},
+    {"ticker": "POWERGRID.NS", "company_name": "Power Grid Corporation of India Ltd", "sector": "Power & Energy"},
+    {"ticker": "RELIANCE.NS", "company_name": "Reliance Industries Ltd", "sector": "Energy & Industrials"},
+    {"ticker": "SBIN.NS", "company_name": "State Bank of India", "sector": "Financial Services"},
+    {"ticker": "SUNPHARMA.NS", "company_name": "Sun Pharmaceutical Industries Ltd", "sector": "Healthcare & Pharma"},
+    {"ticker": "TATAMOTORS.NS", "company_name": "Tata Motors Ltd", "sector": "Automobile"},
+    {"ticker": "TCS.NS", "company_name": "Tata Consultancy Services Ltd", "sector": "Information Technology"},
+    {"ticker": "TITAN.NS", "company_name": "Titan Company Ltd", "sector": "Consumer Goods"},
+    {"ticker": "ULTRACEMCO.NS", "company_name": "UltraTech Cement Ltd", "sector": "Construction Materials"},
+    {"ticker": "WIPRO.NS", "company_name": "Wipro Ltd", "sector": "Information Technology"}
+]
+
 @st.cache_resource
 def get_db_engine():
     db_url = os.getenv("DATABASE_URL")
@@ -21,13 +49,35 @@ def get_db_engine():
 
 engine = get_db_engine()
 
-# TTL set to 60 seconds so company list updates promptly after database seed
-@st.cache_data(ttl=60)
+def ensure_companies_seeded():
+    seed_sql = text("""
+        INSERT INTO dim_companies (ticker, company_name, sector)
+        SELECT :ticker, :company_name, :sector
+        WHERE NOT EXISTS (
+            SELECT 1 FROM dim_companies WHERE ticker = :ticker
+        );
+    """)
+    update_sql = text("""
+        UPDATE dim_companies
+        SET company_name = :company_name, sector = :sector
+        WHERE ticker = :ticker;
+    """)
+    try:
+        with engine.begin() as conn:
+            for comp in TOP_25_COMPANIES:
+                res = conn.execute(seed_sql, comp)
+                if res.rowcount == 0:
+                    conn.execute(update_sql, comp)
+    except Exception as e:
+        st.sidebar.error(f"Error seeding database: {e}")
+
+@st.cache_data(ttl=10)
 def load_companies():
+    ensure_companies_seeded()
     query = "SELECT ticker, company_name, sector FROM dim_companies ORDER BY company_name LIMIT 25;"
     return pd.read_sql(query, engine)
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=10)
 def get_date_bounds():
     with engine.connect() as conn:
         min_date = conn.execute(text("SELECT MIN(trade_date) FROM fact_stock_prices;")).scalar()
@@ -39,7 +89,7 @@ def get_date_bounds():
         max_date = today
     return min_date, max_date
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=60)
 def load_stock_data(ticker, start_date, end_date):
     query = text("""
         SELECT trade_date, open_price, high_price, low_price, close_price, adj_close, volume
@@ -51,7 +101,7 @@ def load_stock_data(ticker, start_date, end_date):
     df['trade_date'] = pd.to_datetime(df['trade_date'])
     return df
 
-@st.cache_data(ttl=300)
+@st.cache_data(ttl=60)
 def load_index_data(start_date, end_date):
     query = text("""
         SELECT trade_date, close_price
@@ -71,9 +121,12 @@ today_date = datetime.date.today()
 
 st.sidebar.header("Controls & Filters")
 
+ticker_to_name = dict(zip(companies_df['ticker'], companies_df['company_name']))
+
 selected_ticker = st.sidebar.selectbox(
-    "Select Stock Ticker (Top 25):",
-    options=companies_df['ticker'].tolist()
+    f"Select Stock Ticker ({len(companies_df)} Available):",
+    options=companies_df['ticker'].tolist(),
+    format_func=lambda x: f"{ticker_to_name.get(x, x)} ({x})"
 )
 
 company_info = companies_df[companies_df['ticker'] == selected_ticker].iloc[0]
@@ -96,7 +149,7 @@ stock_df = load_stock_data(selected_ticker, start_date, end_date)
 index_df = load_index_data(start_date, end_date)
 
 if stock_df.empty:
-    st.warning("No data available for the selected date range in the database.")
+    st.warning("No price data available in the database for this ticker yet. Run the GitHub Action sync workflow to fetch historical price data.")
 else:
     stock_df['SMA_20'] = stock_df['close_price'].rolling(window=20).mean()
     stock_df['SMA_50'] = stock_df['close_price'].rolling(window=50).mean()
