@@ -45,7 +45,14 @@ def get_db_engine():
         db_url = db_url.replace("postgres://", "postgresql+psycopg2://", 1)
     elif db_url.startswith("postgresql://"):
         db_url = db_url.replace("postgresql://", "postgresql+psycopg2://", 1)
-    return create_engine(db_url)
+    
+    # Enable pre-ping to catch closed SSL connections and recycle idle connections automatically
+    return create_engine(
+        db_url,
+        pool_pre_ping=True,
+        pool_recycle=300,
+        pool_timeout=30
+    )
 
 engine = get_db_engine()
 
